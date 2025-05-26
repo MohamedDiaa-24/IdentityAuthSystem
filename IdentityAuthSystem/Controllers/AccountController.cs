@@ -12,5 +12,14 @@ namespace IdentityAuthSystem.Controllers
         {
             return View();
         }
+
+        public IActionResult VerifyEmail()
+        {
+            return View();
+        }
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
     }
 }
