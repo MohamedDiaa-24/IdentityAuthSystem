@@ -9,7 +9,7 @@ namespace IdentityAuthSystem.ViewModels
         public string Email { get; set; }
 
 
-        [Required(ErrorMessage = "Email is Required.")]
+        [Required(ErrorMessage = "Password is Required.")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
         [Display(Name = "Remember Me ?")]
