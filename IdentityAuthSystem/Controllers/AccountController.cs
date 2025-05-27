@@ -63,7 +63,7 @@ namespace IdentityAuthSystem.Controllers
 
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Login", "Account");
+                    return RedirectToAction(nameof(Login), "Account");
                 }
                 else
                 {
@@ -81,11 +81,82 @@ namespace IdentityAuthSystem.Controllers
         {
             return View();
         }
-
-
-        public IActionResult ChangePassword()
+        [HttpPost]
+        public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
         {
-            return View();
+            if (ModelState.IsValid)
+            {
+
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                if (user is null)
+                {
+                    ModelState.AddModelError("", "This email is not registered");
+
+                    return View(model);
+                }
+                else
+                {
+                    return RedirectToAction(nameof(ChangePassword), "Account", new { Email = user.Email });
+                }
+
+            }
+
+            return View(model);
+        }
+
+        public IActionResult ChangePassword(string email)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrWhiteSpace(email))
+            {
+                return RedirectToAction(nameof(VerifyEmail), "Account");
+            }
+            return View(new ChangePasswordViewModel { Email = email });
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                if (user is not null)
+                {
+                    var result = await _userManager.RemovePasswordAsync(user);
+                    if (result.Succeeded)
+                    {
+                        result = await _userManager.AddPasswordAsync(user, model.NewPassword);
+                        return RedirectToAction(nameof(Login), "Account");
+                    }
+                    else
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            ModelState.AddModelError("", error.Description);
+                        }
+                        return View(model);
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Email Not Found");
+
+                    return View(model);
+                }
+            }
+
+            ModelState.AddModelError("", "somting went wrong. try again.");
+            return View(model);
+
+        }
+
+
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction(nameof(Index), "Home");
         }
     }
 }
